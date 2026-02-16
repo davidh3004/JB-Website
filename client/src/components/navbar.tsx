@@ -31,12 +31,12 @@ export function Navbar() {
       data-testid="navbar"
     >
       <div className={`max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-200 ${
-        scrolled ? "h-14" : "h-16"
+        scrolled ? "h-16" : "h-20"
       }`}>
         <Link href="/">
           <span className="relative flex items-center gap-2.5 cursor-pointer group" data-testid="link-logo">
             <span
-              className="absolute inset-0 -m-3 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              className="absolute inset-0 -m-4 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
               style={{
                 background: "radial-gradient(circle at 40% 40%, rgba(37,99,235,0.10), transparent 65%)",
               }}
@@ -44,8 +44,8 @@ export function Navbar() {
             <img
               src={BRAND.logoMark}
               alt="JB Websites"
-              className={`relative transition-all duration-200 mix-blend-multiply dark:mix-blend-screen ${
-                scrolled ? "h-8" : "h-10"
+              className={`relative transition-all duration-200 mix-blend-multiply dark:mix-blend-screen w-auto ${
+                scrolled ? "h-12 md:h-14" : "h-12 md:h-16"
               }`}
               style={{ objectFit: "contain" }}
             />
