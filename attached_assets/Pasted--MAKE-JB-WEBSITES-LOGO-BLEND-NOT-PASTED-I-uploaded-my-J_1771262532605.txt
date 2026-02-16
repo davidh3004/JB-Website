@@ -1,0 +1,97 @@
+=== MAKE JB WEBSITES LOGO BLEND (NOT PASTED) ===
+
+I uploaded my JB Websites logo (PNG). Implement it so it feels native to the UI, not like a pasted image.
+
+PRIMARY GOAL
+- The logo must look integrated into the design through:
+  1) correct transparency (no white box)
+  2) correct cropping (no huge empty margins)
+  3) shared color system (blue accents that match the logo)
+  4) subtle “brand halo” effects (very light, tasteful)
+- Site style: mostly white, blue accents, minimal black.
+
+STEP 1 — FIX ASSET QUALITY (CRITICAL)
+- If the uploaded logo has a white background:
+  - Create a transparent version (preferred output: SVG; fallback: transparent PNG).
+  - If only raster is possible: remove background and export as WEBP/PNG with alpha.
+- Also crop the logo tightly:
+  - remove excessive whitespace around the mark
+  - keep consistent padding via CSS, not inside the image
+- Save final assets:
+  /public/brand/logo.svg   (preferred)
+  /public/brand/logo.png   (fallback)
+  /public/brand/logo-mark.svg (optional: just “JB” mark)
+  /public/brand/favicon.png
+
+STEP 2 — BRAND COLOR SYSTEM (PULL FROM LOGO)
+Create /lib/brand.ts with a palette that matches the logo blues:
+- Primary Blue should match logo’s main blue vibe (use Tailwind blue-600-ish):
+  primary: #2563EB
+  primaryHover: #1D4ED8
+  softBg: #EFF6FF
+  ink: #0F172A
+  muted: #475569
+  border: #E2E8F0
+Also define:
+  logoLight: "/brand/logo.svg" (fallback to png)
+  logoMark: "/brand/logo-mark.svg" (optional)
+Use BRAND values everywhere—no random blues.
+
+STEP 3 — NAVBAR INTEGRATION (MAKE IT FEEL DESIGNED)
+- Navbar: white background + subtle border (slate-200)
+- Left: logo + wordmark (if included) aligned perfectly with baseline
+- Use one of these approaches:
+  A) Logo-only (best if your asset includes “WEBSITES” already)
+  B) Logo mark + text “JB Websites” in a clean font, matching spacing
+- Add “shrink on scroll”:
+  - top: logo height 44px desktop / 36px mobile
+  - scrolled: 36px desktop / 30px mobile
+  - smooth transition on height + padding (200ms)
+- IMPORTANT: No drop shadows that look cheap.
+
+STEP 4 — SUBTLE “BRAND HALO” (THE SECRET SAUCE)
+To make the logo blend into the white UI, add a super subtle radial glow behind it:
+- Behind the logo container, add:
+  - a small radial gradient (blue at 8–12% opacity → transparent)
+  - only visible on hover or only in hero section
+- Must be extremely subtle (no neon, no obvious glow).
+- Example: background: radial-gradient(circle at 30% 30%, rgba(37,99,235,0.10), transparent 60%)
+
+STEP 5 — HERO SECTION SHOULD ECHO THE LOGO
+In the homepage hero:
+- Add a very light abstract background shape using the same blue palette.
+- Do NOT copy the logo colors directly as loud gradients.
+- Use:
+  - blue-50 background wash
+  - small gradient blob(s) at 4–8% opacity
+This makes the logo feel “from the same world”.
+
+STEP 6 — BUTTON + LINK STYLING (MATCH LOGO ENERGY)
+- Primary CTA buttons: solid blue (#2563EB) with subtle shadow
+- Secondary buttons: outline with blue border
+- Link hover: blue underline animation
+- Keep black minimal (only headings/nav).
+
+STEP 7 — FOOTER + ADMIN (CONSISTENT BRAND)
+- Footer: logo smaller (28–32px) + short tagline
+- Admin: small logo in top-left (28px), clean dashboard look
+
+STEP 8 — TECH DETAILS (NEXT.JS)
+- Use Next/Image for raster with:
+  - priority in navbar
+  - correct sizes + alt text
+- For SVG:
+  - ensure it scales cleanly
+  - avoid layout shift (set explicit height)
+- Make sure no white “box” shows on non-white backgrounds.
+
+STEP 9 — WHITE-LABEL
+- Remove any “Made with Replit” or generator branding in UI or comments.
+
+DELIVERABLE
+- Commit-ready implementation:
+  - /public/brand assets
+  - /lib/brand.ts
+  - Navbar + footer updated
+  - Hero background polish
+  - Logo looks native, not pasted
