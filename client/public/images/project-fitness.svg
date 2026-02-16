@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450">
+  <rect width="800" height="450" fill="#f0fdf4"/>
+  <rect x="40" y="40" width="720" height="370" rx="12" fill="white" stroke="#e2e8f0" stroke-width="1"/>
+  <rect x="40" y="40" width="720" height="60" rx="12" fill="#16a34a"/>
+  <rect x="40" y="88" width="720" height="12" fill="#16a34a"/>
+  <text x="70" y="78" fill="white" font-family="Inter,sans-serif" font-size="18" font-weight="600">Peak Fitness Studio</text>
+  <rect x="80" y="140" width="640" height="40" rx="6" fill="#f0fdf4"/>
+  <rect x="80" y="200" width="200" height="160" rx="8" fill="#dcfce7"/>
+  <rect x="300" y="200" width="200" height="160" rx="8" fill="#dcfce7"/>
+  <rect x="520" y="200" width="200" height="160" rx="8" fill="#dcfce7"/>
+  <rect x="100" y="220" width="160" height="16" rx="3" fill="#bbf7d0"/>
+  <rect x="100" y="248" width="120" height="12" rx="3" fill="#bbf7d0"/>
+  <rect x="320" y="220" width="160" height="16" rx="3" fill="#bbf7d0"/>
+  <rect x="320" y="248" width="120" height="12" rx="3" fill="#bbf7d0"/>
+  <rect x="540" y="220" width="160" height="16" rx="3" fill="#bbf7d0"/>
+  <rect x="540" y="248" width="120" height="12" rx="3" fill="#bbf7d0"/>
+  <rect x="100" y="320" width="80" height="28" rx="4" fill="#16a34a"/>
+  <rect x="320" y="320" width="80" height="28" rx="4" fill="#16a34a"/>
+  <rect x="540" y="320" width="80" height="28" rx="4" fill="#16a34a"/>
+</svg>
