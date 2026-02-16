@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { LayoutDashboard, FolderOpen, Settings, MessageSquare, CreditCard, LogOut, ExternalLink } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { BRAND } from "@/lib/brand";
 import type { User } from "@shared/schema";
 
 const menuItems = [
@@ -47,9 +48,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           <SidebarContent>
             <SidebarGroup>
               <div className="px-3 py-4">
-                <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                  JB<span className="text-blue-600">Admin</span>
-                </span>
+                <img src={BRAND.logoMark} alt="JB Websites Admin" className="h-7 mix-blend-multiply dark:mix-blend-screen" style={{ objectFit: "contain" }} />
               </div>
             </SidebarGroup>
             <SidebarGroup>

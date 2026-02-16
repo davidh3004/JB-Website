@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { BRAND } from "@/lib/brand";
 
 const links = [
   { href: "/", label: "Home" },
@@ -14,13 +15,40 @@ const links = [
 export function Navbar() {
   const [location] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-800/60" data-testid="navbar">
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between gap-4">
+    <nav
+      className={`sticky top-0 z-50 bg-white/90 dark:bg-background/90 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-800/60 transition-all duration-200 ${
+        scrolled ? "shadow-sm" : ""
+      }`}
+      data-testid="navbar"
+    >
+      <div className={`max-w-6xl mx-auto px-6 flex items-center justify-between gap-4 transition-all duration-200 ${
+        scrolled ? "h-14" : "h-16"
+      }`}>
         <Link href="/">
-          <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight cursor-pointer" data-testid="link-logo">
-            JB<span className="text-blue-600">Websites</span>
+          <span className="relative flex items-center gap-2.5 cursor-pointer group" data-testid="link-logo">
+            <span
+              className="absolute inset-0 -m-3 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+              style={{
+                background: "radial-gradient(circle at 40% 40%, rgba(37,99,235,0.10), transparent 65%)",
+              }}
+            />
+            <img
+              src={BRAND.logoMark}
+              alt="JB Websites"
+              className={`relative transition-all duration-200 mix-blend-multiply dark:mix-blend-screen ${
+                scrolled ? "h-8" : "h-10"
+              }`}
+              style={{ objectFit: "contain" }}
+            />
           </span>
         </Link>
 

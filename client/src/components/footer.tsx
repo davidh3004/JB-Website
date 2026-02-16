@@ -1,5 +1,6 @@
 import { Link } from "wouter";
 import { SiInstagram, SiTiktok, SiYoutube, SiLinkedin } from "react-icons/si";
+import { BRAND } from "@/lib/brand";
 
 export function Footer() {
   return (
@@ -7,9 +8,9 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-              JB<span className="text-blue-600">Websites</span>
-            </span>
+            <div className="flex items-center gap-2">
+              <img src={BRAND.logoMark} alt="JB Websites" className="h-8 mix-blend-multiply dark:mix-blend-screen" style={{ objectFit: "contain" }} />
+            </div>
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               Custom-coded websites and ongoing support for businesses that take their online presence seriously.
             </p>
