@@ -1,0 +1,111 @@
+=== API KEYS + DEVELOPER API (MUST ADD) ===
+
+I need a secure Developer API so I can generate API keys for my developers and integrate JB Websites with other systems.
+
+REQUIREMENTS
+- Add an Admin-only section in /admin: “Developer API”
+- From this page I can:
+  1) Create API keys (name, role/scope, optional expiration)
+  2) View keys ONCE at creation (show full token only once)
+  3) Revoke keys instantly
+  4) Rotate keys (create new, revoke old)
+  5) See last-used timestamp + basic usage logs (endpoint + time + IP)
+- Keys must be stored hashed (never store raw tokens).
+- Token format: prefix + random secret (e.g., jb_live_****) and support sandbox/live mode later.
+- Rate limit all API requests by key + IP.
+- Enforce least privilege with scopes.
+
+DATABASE (add Prisma models)
+- ApiKey:
+  - id
+  - name
+  - keyPrefix (public identifier)
+  - keyHash (hashed secret)
+  - scopes (string[])
+  - status (active/revoked)
+  - expiresAt (nullable)
+  - lastUsedAt (nullable)
+  - createdByUserId
+  - createdAt
+- ApiRequestLog (optional but preferred):
+  - id
+  - apiKeyId
+  - endpoint
+  - method
+  - ip
+  - userAgent (nullable)
+  - createdAt
+  - statusCode
+
+SCOPES (implement these)
+- projects:read
+- projects:write
+- settings:read
+- settings:write
+- leads:read
+- leads:write (optional; default off)
+- square:read
+- square:write
+- users:read (admin only)
+- users:write (admin only)
+
+AUTHENTICATION
+- Use “Authorization: Bearer <token>” OR “x-api-key: <token>”
+- Verify:
+  - token prefix exists
+  - hash(secret) matches keyHash
+  - status active
+  - not expired
+  - scope allowed for endpoint
+- Log each request (at least success/failure + lastUsedAt update).
+
+API ENDPOINTS (create REST API under /api/v1)
+- GET /api/v1/health  (public ok, no secrets)
+- GET /api/v1/projects               (projects:read)
+- POST /api/v1/projects              (projects:write)
+- GET /api/v1/projects/:id           (projects:read)
+- PATCH /api/v1/projects/:id         (projects:write)
+- DELETE /api/v1/projects/:id        (projects:write)
+- POST /api/v1/projects/:id/images   (projects:write)  [multipart upload]
+- DELETE /api/v1/project-images/:id  (projects:write)
+
+- GET /api/v1/settings               (settings:read)
+- PATCH /api/v1/settings             (settings:write)
+
+- GET /api/v1/leads                  (leads:read)
+- PATCH /api/v1/leads/:id            (leads:write optional)
+
+- GET /api/v1/square-settings        (square:read)
+- PATCH /api/v1/square-settings      (square:write)
+
+SECURITY NOTES
+- Do NOT expose secrets in responses.
+- Use Zod validation on all payloads.
+- Add CORS config (default deny; allowlist via env var ALLOWED_ORIGINS).
+- Use structured error responses: { error: { code, message } }.
+- Provide OpenAPI spec or a simple /api/v1/docs JSON endpoint (optional but strongly preferred).
+
+ADMIN UI DETAILS
+- /admin/developer-api:
+  - “Create API Key” modal:
+    - Name
+    - Scopes multi-select
+    - Expiration (none / 30d / 90d / custom date)
+  - After creation show:
+    - FULL TOKEN once + “Copy” button + warning “Save it now”
+  - Keys table:
+    - Name, Prefix, Scopes, Status, Created, Expires, Last used
+    - Revoke / Rotate actions
+  - Basic usage log viewer (last 50 requests)
+
+IMPLEMENTATION DETAIL (important)
+- Hashing: use SHA-256 or HMAC-SHA256 with server secret (API_KEY_PEPPER env var). Store only hash.
+- Token generation must be cryptographically secure.
+- Use middleware to protect /api/v1 routes.
+
+DOCUMENTATION
+- README must include:
+  - how to create an API key
+  - example curl requests for each endpoint
+  - how scopes work
+  - security best practices

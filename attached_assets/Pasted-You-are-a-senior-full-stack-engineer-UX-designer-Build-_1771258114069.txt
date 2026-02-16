@@ -1,0 +1,177 @@
+You are a senior full-stack engineer + UX designer. Build a production-ready marketing website + admin portal for my web agency: **JB Websites (JBwebsites)**.
+
+BRAND / LOOK (MUST FOLLOW)
+- Overall: **mostly white**, clean, spacious, premium.
+- Accents: **blue** for CTAs, links, highlights, badges.
+- Black: small amounts for headings/nav/footer text only.
+- Style: modern tech-agency. Minimal, high-trust, not flashy.
+- UI: rounded-xl cards, soft shadows, subtle gradients (very light blue), smooth transitions.
+- Typography: strong headings, simple body text (system or Inter).
+- Accessibility: high contrast on buttons, clear focus states.
+
+COLOR TOKENS (Tailwind-friendly)
+- Primary (Blue): #2563EB (blue-600)
+- Primary Hover: #1D4ED8 (blue-700)
+- Light Blue Backgrounds: #EFF6FF (blue-50) / #DBEAFE (blue-100)
+- Text (Near Black): #0F172A (slate-900)
+- Muted Text: #475569 (slate-600)
+- Borders: #E2E8F0 (slate-200)
+- Background: #FFFFFF
+
+GOALS
+- Modern, premium agency site that converts leads.
+- Public portfolio/catalog of websites I’ve built (with images + links).
+- Admin dashboard (login) to manage site content without touching code.
+- Mention we offer *monthly plans/fees* but **NO PRICES anywhere**.
+- Add an option to integrate **Square** for payment processing (checkout links and/or embedded checkout) so clients can pay deposits or monthly plans.
+
+TECH STACK (stable default)
+- Frontend: Next.js (App Router) + TypeScript + Tailwind.
+- Backend: Next.js server actions / API routes.
+- DB: PostgreSQL + Prisma ORM.
+- Auth: NextAuth (Credentials) OR Lucia; must support admin-only access.
+- Uploads: local upload in dev (/public/uploads) + abstraction to swap to S3/R2 later.
+- Validation: Zod.
+- Email: Resend (preferred) or SMTP.
+
+POSITIONING / COPY RULES (write all copy for me)
+- We build **custom-coded** websites tailored to each business (not cookie-cutter templates).
+- We include **SEO foundations** (technical + on-page basics) and can do ongoing local SEO.
+- We offer **monthly plans/fees** for: maintenance, updates, performance, security, backups, monitoring, SEO/content updates, and small edits.
+- We can integrate booking tools (Vagaro/Calendly), CRMs, and payments (Square).
+- Tone: confident, professional, direct, modern.
+
+SITE MAP (PUBLIC)
+1) Home
+   - Hero headline (make it strong + short)
+   - Subheadline clarifying value for local businesses
+   - CTAs: “Get a quote” (primary blue) + “View work” (secondary outline)
+   - Sections:
+     - “What we do” (3 cards)
+     - “What’s included” (no pricing)
+     - “Featured work” (3–6 projects)
+     - “Why JB Websites” (trust bullets)
+     - CTA band (blue-50 background)
+
+2) Services
+   - Web Design & Development (custom-coded)
+   - SEO Foundations + ongoing local SEO option
+   - Integrations (Square, booking, CRM)
+   - Monthly Plans/Fees (describe value; NO dollar amounts)
+   - Process timeline (Discovery → Design → Build → Launch → Ongoing)
+
+3) Portfolio / Catalog
+   - Filter by category/tags
+   - Project cards: cover image, title, short description, tags, optional live link
+   - Project detail page:
+     - gallery
+     - goals/results (placeholders allowed)
+     - tech highlights
+
+4) About
+   - Short story + why we’re different
+   - Values: reliability, speed, communication, long-term support
+
+5) Contact / Get a Quote
+   - Form fields: name, email, phone, business name, industry, timeline, message
+   - (Optional) “Budget range” as ranges only (no explicit pricing)
+   - Save to DB + email admin
+   - Thank-you page
+
+6) Legal
+   - Privacy + Terms templates
+
+ADMIN PORTAL (MUST HAVE, PROTECTED)
+- /admin routes protected by auth.
+- Roles: Admin, Editor (Admin manages users; Editor manages content/projects).
+- Dashboard features:
+  1) Portfolio Projects (CRUD)
+     - Create/edit/delete
+     - Upload cover + gallery images
+     - Reorder images (drag/drop or up/down)
+     - Publish/unpublish
+     - Tags + category
+  2) Site Content (CMS-lite)
+     - Home hero headline/subheadline
+     - Services copy blocks
+     - About copy
+     - Social links (IG, TikTok, YouTube, X, LinkedIn)
+     - CTA links (booking link, quote link)
+     - Contact info (email/phone)
+  3) Leads
+     - List submissions
+     - Status: new/contacted/archived
+     - Export CSV
+  4) Square Settings
+     - Store configuration (env + DB):
+       - mode (sandbox/production)
+       - location_id
+       - defaultCheckoutUrl (for deposit/payments)
+       - optional additional checkout URLs (monthly, deposit, invoice)
+     - Provide two integration approaches:
+       A) “Pay Now” button that opens Square Checkout Link (admin-editable URL)
+       B) Optional embedded checkout via Square Web Payments SDK behind a feature flag
+     - No sensitive keys in code (env vars only).
+
+DATABASE (Prisma schema required)
+- User: id, name, email, passwordHash, role, createdAt
+- Project: id, slug, title, category, description, tags[], coverImageUrl, liveUrl, published, createdAt, updatedAt
+- ProjectImage: id, projectId, url, altText, sortOrder
+- SiteSettings (single row): heroHeadline, heroSubheadline, servicesBlocks (JSON), aboutText, socialLinks (JSON), ctaLinks (JSON), contactInfo (JSON)
+- Lead: id, name, email, phone, businessName, industry, timeline, message, status, createdAt
+- SquareSettings (single row): mode, locationId, defaultCheckoutUrl, extraCheckoutUrls (JSON), updatedAt
+
+SECURITY + QUALITY REQUIREMENTS
+- Password hashing with bcrypt/argon2.
+- Admin creation via Prisma seed using env vars:
+  - ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME
+- Protect admin routes + API endpoints.
+- Rate-limit login + contact form.
+- Upload restrictions: jpg/png/webp only, size limits, sanitize filenames.
+- Server-side validation with Zod.
+
+SEO + PERFORMANCE
+- Metadata per page (title/description templates)
+- Open Graph images (simple default)
+- sitemap.xml + robots.txt
+- JSON-LD for WebSite + LocalBusiness
+- Next/Image optimization
+- Good Lighthouse score focus
+
+DESIGN COMPONENTS (BUILD THESE)
+- Navbar: white bg, subtle border, blue CTA button “Get a quote”
+- Buttons: primary blue, secondary outline, small icon option
+- Cards: white with border + soft shadow on hover
+- Sections: alternating white and blue-50 backgrounds for rhythm
+- Footer: white, small black text, social icons
+
+CONTENT (WRITE IT)
+- Write professional copy for all pages. Must mention:
+  - custom-coded sites
+  - SEO foundations + ongoing option
+  - monthly plans/fees (maintenance, updates, security, performance, SEO/content)
+  - integrations including Square
+- DO NOT show any prices.
+
+DELIVERABLES
+- Complete working Replit-ready project:
+  - README (setup, env vars, migrate DB, seed admin, run)
+  - .env.example
+  - Prisma migrations + seed
+  - Working admin portal
+  - Working portfolio + contact form
+  - Square settings page + checkout-link integration live in UI
+- Add 4–6 sample portfolio entries with placeholder images (or generated placeholders).
+
+IMPLEMENTATION ORDER (follow this)
+1) Scaffold Next.js + Tailwind + Prisma
+2) Prisma schema + migrations
+3) Auth + protected /admin
+4) Portfolio CRUD + uploads
+5) SiteSettings CMS-lite
+6) Contact form + Leads dashboard
+7) Square settings + checkout link button
+8) SEO polish + sitemap + JSON-LD
+9) UI polish (white/blue/black theme)
+
+Start by printing folder structure and route plan, then implement step-by-step until everything runs.
