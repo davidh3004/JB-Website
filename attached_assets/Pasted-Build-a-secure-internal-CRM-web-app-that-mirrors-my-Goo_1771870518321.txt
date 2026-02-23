@@ -1,0 +1,61 @@
+Build a secure internal CRM web app that mirrors my Google Sheets workflow but is fully controlled through my website.
+
+STACK:
+Astro + TailwindCSS + daisyUI. Use React via Astro adapter for interactive components (tables, modals, filters).
+
+GOAL:
+- Google Sheets remains the private database (NOT shared with callers).
+- The website displays all sheet data and handles all “sheet mechanics” (view, search, filter, edit, call logging, lead creation).
+- Permission system:
+  - role=caller: can ONLY see/edit their own leads/calls/searches (ownerUserId match).
+  - role=admin: can see/edit EVERYTHING and can reassign leads.
+
+DATA (Google Sheets tabs and columns):
+Create these tabs (or map if already exists):
+1) Users: userId, email, passwordHash OR magicLinkEnabled, role, name, active, createdAt
+2) Leads: leadId, ownerUserId, companyName, contactName, phone, city, niche, status, notes, lastCallAt, nextFollowUpAt, createdAt, updatedAt
+3) Calls: callId, ownerUserId, leadId, outcome, durationSec, notes, createdAt
+4) Searches: searchId, ownerUserId, query, filtersJSON, createdAt
+5) Events(Audit): eventId, actorUserId, action, entityType, entityId, beforeJSON, afterJSON, createdAt
+
+AUTH:
+- Implement login with JWT sessions stored in httpOnly cookies.
+- Middleware to protect /app/* and /admin/*.
+- RBAC checks on every API route.
+
+BACKEND INTEGRATION:
+- Implement a Google Apps Script backend (Code.gs) that exposes endpoints:
+  POST /auth/login (validate user; return userId+role)
+  GET /leads (caller gets only own; admin gets all)
+  POST /leads (create lead; ownerUserId = caller userId unless admin assigns)
+  GET /leads/:id (caller only if owns)
+  PATCH /leads/:id (caller only if owns)
+  POST /calls (log call; caller only for their own lead)
+  POST /searches (log a search tied to ownerUserId)
+  GET /searches (caller only own; admin all)
+  GET /admin/users (admin only)
+  POST /admin/reassign (admin only)
+  GET /admin/audit (admin only)
+
+IMPORTANT SECURITY:
+- The browser must NEVER talk directly to Apps Script.
+- Create Astro server routes under /src/pages/api/* that proxy to Apps Script.
+- Store APPS_SCRIPT_URL and APPS_SCRIPT_API_KEY in env vars.
+- Validate all payloads with zod and enforce ownerUserId server-side always.
+
+UI PAGES:
+Caller:
+- /app dashboard
+- /app/leads (table + filters)
+- /app/leads/[id] (lead detail, notes, status, call log, follow-up)
+- /app/search (search UI and automatically log each search)
+Admin:
+- /admin/leads (all leads + reassign)
+- /admin/users (create/disable users)
+- /admin/audit (events)
+
+DELIVER:
+- Full Astro project structure and code
+- All API routes
+- Google Apps Script Code.gs
+- README with setup steps: create sheet, deploy script, set env vars, run, deploy to Vercel
