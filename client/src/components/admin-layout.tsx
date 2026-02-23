@@ -13,7 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { LayoutDashboard, FolderOpen, Settings, MessageSquare, CreditCard, LogOut, ExternalLink, Users } from "lucide-react";
+import { LayoutDashboard, FolderOpen, Settings, MessageSquare, CreditCard, LogOut, ExternalLink } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { BRAND } from "@/lib/brand";
 import type { User } from "@shared/schema";
@@ -24,7 +24,6 @@ const menuItems = [
   { title: "Site Settings", href: "/admin/settings", icon: Settings },
   { title: "Leads", href: "/admin/leads", icon: MessageSquare },
   { title: "Square", href: "/admin/square", icon: CreditCard },
-  { title: "CRM", href: "/app", icon: Users },
 ];
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {

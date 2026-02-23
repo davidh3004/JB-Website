@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { RequireAuth } from "@/lib/auth";
 import { AdminLayout } from "@/components/admin-layout";
-import { CrmLayout } from "@/components/crm-layout";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Services from "@/pages/services";
@@ -19,25 +18,11 @@ import AdminProjects from "@/pages/admin/projects";
 import AdminSettings from "@/pages/admin/settings";
 import AdminLeads from "@/pages/admin/leads";
 import AdminSquare from "@/pages/admin/square";
-import CrmDashboard from "@/pages/crm/dashboard";
-import CrmLeads from "@/pages/crm/leads";
-import LeadDetail from "@/pages/crm/lead-detail";
-import CrmSearch from "@/pages/crm/search";
-import CrmAdminUsers from "@/pages/crm/admin-users";
-import CrmAdminAudit from "@/pages/crm/admin-audit";
 
 function AdminPage({ children }: { children: React.ReactNode }) {
   return (
     <RequireAuth>
       <AdminLayout>{children}</AdminLayout>
-    </RequireAuth>
-  );
-}
-
-function CrmPage({ children }: { children: React.ReactNode }) {
-  return (
-    <RequireAuth>
-      <CrmLayout>{children}</CrmLayout>
     </RequireAuth>
   );
 }
@@ -66,26 +51,6 @@ function Router() {
       </Route>
       <Route path="/admin/square">
         <AdminPage><AdminSquare /></AdminPage>
-      </Route>
-      <Route path="/app">
-        <CrmPage><CrmDashboard /></CrmPage>
-      </Route>
-      <Route path="/app/leads">
-        <CrmPage><CrmLeads /></CrmPage>
-      </Route>
-      <Route path="/app/leads/:id">
-        {(params) => (
-          <CrmPage><LeadDetail params={params} /></CrmPage>
-        )}
-      </Route>
-      <Route path="/app/search">
-        <CrmPage><CrmSearch /></CrmPage>
-      </Route>
-      <Route path="/app/admin/users">
-        <CrmPage><CrmAdminUsers /></CrmPage>
-      </Route>
-      <Route path="/app/admin/audit">
-        <CrmPage><CrmAdminAudit /></CrmPage>
       </Route>
       <Route component={NotFound} />
     </Switch>

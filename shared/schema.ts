@@ -64,23 +64,15 @@ export type SiteSettings = typeof siteSettings.$inferSelect;
 
 export const leads = pgTable("leads", {
   id: serial("id").primaryKey(),
-  ownerUserId: integer("owner_user_id"),
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").default(""),
   businessName: text("business_name").default(""),
-  companyName: text("company_name").default(""),
-  contactName: text("contact_name").default(""),
-  city: text("city").default(""),
-  niche: text("niche").default(""),
   industry: text("industry").default(""),
   timeline: text("timeline").default(""),
   budgetRange: text("budget_range").default(""),
   message: text("message").notNull(),
-  notes: text("notes").default(""),
   status: text("status").notNull().default("new"),
-  lastContactedAt: timestamp("last_contacted_at"),
-  nextFollowUpAt: timestamp("next_follow_up_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -88,47 +80,6 @@ export const leads = pgTable("leads", {
 export const insertLeadSchema = createInsertSchema(leads).omit({ id: true, createdAt: true, updatedAt: true });
 export type InsertLead = z.infer<typeof insertLeadSchema>;
 export type Lead = typeof leads.$inferSelect;
-
-export const calls = pgTable("calls", {
-  id: serial("id").primaryKey(),
-  ownerUserId: integer("owner_user_id").notNull(),
-  leadId: integer("lead_id").notNull(),
-  outcome: text("outcome").notNull().default("no_answer"),
-  durationSec: integer("duration_sec").default(0),
-  notes: text("notes").default(""),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertCallSchema = createInsertSchema(calls).omit({ id: true, createdAt: true });
-export type InsertCall = z.infer<typeof insertCallSchema>;
-export type Call = typeof calls.$inferSelect;
-
-export const searches = pgTable("searches", {
-  id: serial("id").primaryKey(),
-  ownerUserId: integer("owner_user_id").notNull(),
-  query: text("query").notNull(),
-  filtersJson: jsonb("filters_json").default(sql`'{}'::jsonb`),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertSearchSchema = createInsertSchema(searches).omit({ id: true, createdAt: true });
-export type InsertSearch = z.infer<typeof insertSearchSchema>;
-export type Search = typeof searches.$inferSelect;
-
-export const auditEvents = pgTable("audit_events", {
-  id: serial("id").primaryKey(),
-  actorUserId: integer("actor_user_id").notNull(),
-  action: text("action").notNull(),
-  entityType: text("entity_type").notNull(),
-  entityId: text("entity_id").notNull(),
-  beforeJson: jsonb("before_json"),
-  afterJson: jsonb("after_json"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-});
-
-export const insertAuditEventSchema = createInsertSchema(auditEvents).omit({ id: true, createdAt: true });
-export type InsertAuditEvent = z.infer<typeof insertAuditEventSchema>;
-export type AuditEvent = typeof auditEvents.$inferSelect;
 
 export const squareSettings = pgTable("square_settings", {
   id: serial("id").primaryKey(),
@@ -157,36 +108,4 @@ export const contactFormSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().email("Valid email is required"),
   password: z.string().min(1, "Password is required"),
-});
-
-export const createLeadCrmSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().optional(),
-  companyName: z.string().optional(),
-  contactName: z.string().optional(),
-  city: z.string().optional(),
-  niche: z.string().optional(),
-  status: z.enum(["new", "contacted", "qualified", "proposal", "won", "lost", "archived"]).optional(),
-  notes: z.string().optional(),
-  message: z.string().optional(),
-  nextFollowUpAt: z.string().optional(),
-});
-
-export const updateLeadCrmSchema = createLeadCrmSchema.partial().extend({
-  ownerUserId: z.number().optional(),
-});
-
-export const logCallSchema = z.object({
-  leadId: z.number(),
-  outcome: z.enum(["connected", "no_answer", "voicemail", "callback", "not_interested"]),
-  durationSec: z.number().min(0).optional(),
-  notes: z.string().optional(),
-});
-
-export const createUserSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Valid email is required"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  role: z.enum(["admin", "caller", "editor"]),
 });
