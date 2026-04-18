@@ -71,7 +71,7 @@ export async function registerRoutes(
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: false,
+        secure: app.get("env") === "production",
         sameSite: "lax",
       },
     })
