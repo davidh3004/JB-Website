@@ -91,7 +91,7 @@ export default function ProjectDetail() {
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed" data-testid="text-project-description">{project.description}</p>
             </div>
 
-            <Card className="p-5">
+            <Card className="p-5 dark:border-white/15">
               <h3 className="font-semibold text-slate-900 dark:text-white mb-3 text-sm uppercase tracking-wider">Project Details</h3>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
@@ -110,7 +110,7 @@ export default function ProjectDetail() {
             </Card>
 
             <Link href="/contact">
-              <Button className="w-full" data-testid="button-project-quote">
+              <Button className="w-full mt-5" data-testid="button-project-quote">
                 Start a Similar Project
               </Button>
             </Link>

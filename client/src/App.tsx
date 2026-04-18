@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
+import { useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,6 +19,7 @@ import AdminProjects from "@/pages/admin/projects";
 import AdminSettings from "@/pages/admin/settings";
 import AdminLeads from "@/pages/admin/leads";
 import AdminSquare from "@/pages/admin/square";
+import AdminContent from "@/pages/admin/content";
 
 function AdminPage({ children }: { children: React.ReactNode }) {
   return (
@@ -27,9 +29,17 @@ function AdminPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: "instant" }); }, [location]);
+  return null;
+}
+
 function Router() {
   return (
-    <Switch>
+    <>
+      <ScrollToTop />
+      <Switch>
       <Route path="/" component={Home} />
       <Route path="/services" component={Services} />
       <Route path="/portfolio" component={Portfolio} />
@@ -52,8 +62,12 @@ function Router() {
       <Route path="/admin/square">
         <AdminPage><AdminSquare /></AdminPage>
       </Route>
+      <Route path="/admin/content">
+        <AdminPage><AdminContent /></AdminPage>
+      </Route>
       <Route component={NotFound} />
-    </Switch>
+      </Switch>
+    </>
   );
 }
 
