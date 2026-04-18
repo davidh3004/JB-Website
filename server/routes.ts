@@ -7,7 +7,7 @@ import {
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import session from "express-session";
-import ConnectPgSimple from "connect-pg-simple";
+import createMemoryStore from "memorystore";
 import { pool } from "./db";
 import multer from "multer";
 import path from "path";
@@ -60,18 +60,20 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  const PgSession = ConnectPgSimple(session);
+  const MemoryStore = createMemoryStore(session);
 
   app.use(
     session({
-      store: new PgSession({ pool, createTableIfMissing: true }),
+      store: new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
+      }),
       secret: process.env.SESSION_SECRET || "jb-websites-secret-key-change-me",
       resave: false,
       saveUninitialized: false,
       cookie: {
         maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: app.get("env") === "production",
+        secure: false,
         sameSite: "lax",
       },
     })
