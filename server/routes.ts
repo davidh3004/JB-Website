@@ -1,35 +1,18 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { supabaseAdmin } from "./supabase";
 import {
   contactFormSchema, loginSchema, insertProjectSchema,
 } from "@shared/schema";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
-import session from "express-session";
-import ConnectPgSimple from "connect-pg-simple";
-import { pool } from "./db";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
 import crypto from "crypto";
 
-const uploadDir = path.resolve("uploads");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const multerStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, uploadDir),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    const name = crypto.randomBytes(16).toString("hex");
-    cb(null, `${name}${ext}`);
-  },
-});
-
+// ─── Multer (memory storage for Supabase upload) ─────
 const upload = multer({
-  storage: multerStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const allowed = [".jpg", ".jpeg", ".png", ".webp"];
@@ -42,17 +25,21 @@ const upload = multer({
   },
 });
 
-declare module "express-session" {
-  interface SessionData {
-    userId?: number;
-    userRole?: string;
-  }
-}
-
-function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session?.userId) {
+// ─── Auth middleware (Supabase JWT) ───────────────────
+async function requireAuth(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+
+  const token = authHeader.split(" ")[1];
+  const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
+
+  if (error || !user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  (req as any).supabaseUser = user;
   next();
 }
 
@@ -60,31 +47,6 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  const PgSession = ConnectPgSimple(session);
-
-  app.use(
-    session({
-      store: new PgSession({ pool, createTableIfMissing: true }),
-      secret: process.env.SESSION_SECRET || "jb-websites-secret-key-change-me",
-      resave: false,
-      saveUninitialized: false,
-      cookie: {
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        httpOnly: true,
-        secure: app.get("env") === "production",
-        sameSite: "lax",
-      },
-    })
-  );
-
-  app.use("/uploads", (req, res, next) => {
-    const filePath = path.join(uploadDir, path.basename(req.path));
-    if (fs.existsSync(filePath)) {
-      res.sendFile(filePath);
-    } else {
-      res.status(404).json({ message: "File not found" });
-    }
-  });
 
   // ─── Auth ───────────────────────────────────────────
 
@@ -93,34 +55,37 @@ export async function registerRoutes(
       const parsed = loginSchema.safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ message: "Invalid credentials" });
 
-      const user = await storage.getUserByEmail(parsed.data.email);
-      if (!user) return res.status(401).json({ message: "Invalid email or password" });
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({
+        email: parsed.data.email,
+        password: parsed.data.password,
+      });
 
-      const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
-      if (!valid) return res.status(401).json({ message: "Invalid email or password" });
+      if (error) return res.status(401).json({ message: error.message });
 
-      req.session.userId = user.id;
-      req.session.userRole = user.role;
-      res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+      res.json({
+        id: data.user.id,
+        name: data.user.user_metadata?.name || data.user.email?.split("@")[0] || "Admin",
+        email: data.user.email,
+        role: data.user.user_metadata?.role || "admin",
+        token: data.session.access_token,
+      });
     } catch (err) {
       res.status(500).json({ message: "Login failed" });
     }
   });
 
-  app.post("/api/auth/logout", (req, res) => {
-    req.session.destroy(() => {
-      res.json({ ok: true });
-    });
+  app.post("/api/auth/logout", (_req, res) => {
+    res.json({ ok: true });
   });
 
-  app.get("/api/auth/me", async (req, res) => {
-    const userId = req.session?.userId;
-    if (!userId) return res.status(401).json({ message: "Not authenticated" });
-
-    const user = await storage.getUser(userId);
-    if (!user) return res.status(401).json({ message: "User not found" });
-
-    res.json({ id: user.id, name: user.name, email: user.email, role: user.role });
+  app.get("/api/auth/me", requireAuth, async (req, res) => {
+    const user = (req as any).supabaseUser;
+    res.json({
+      id: user.id,
+      name: user.user_metadata?.name || user.email?.split("@")[0] || "Admin",
+      email: user.email,
+      role: user.user_metadata?.role || "admin",
+    });
   });
 
   // ─── Public routes ─────────────────────────────────
@@ -196,9 +161,22 @@ export async function registerRoutes(
     const id = parseInt(req.params.id as string);
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
-    const url = `/uploads/${req.file.filename}`;
-    await storage.updateProject(id, { coverImageUrl: url });
-    res.json({ url });
+    const ext = path.extname(req.file.originalname).toLowerCase();
+    const filename = `covers/${crypto.randomBytes(16).toString("hex")}${ext}`;
+
+    const { error } = await supabaseAdmin.storage
+      .from("uploads")
+      .upload(filename, req.file.buffer, {
+        contentType: req.file.mimetype,
+        upsert: false,
+      });
+
+    if (error) return res.status(500).json({ message: "Upload failed: " + error.message });
+
+    const { data: urlData } = supabaseAdmin.storage.from("uploads").getPublicUrl(filename);
+
+    await storage.updateProject(id, { coverImageUrl: urlData.publicUrl });
+    res.json({ url: urlData.publicUrl });
   });
 
   app.get("/api/admin/settings", requireAuth, async (_req, res) => {

@@ -95,7 +95,7 @@ export default function AdminProjects() {
     mutationFn: async ({ id, file }: { id: number; file: File }) => {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await fetch(`/api/admin/projects/${id}/cover`, { method: "POST", body: formData, credentials: "include" });
+      const res = await apiRequest("POST", `/api/admin/projects/${id}/cover`, formData);
       if (!res.ok) throw new Error("Upload failed");
     },
     onSuccess: () => {

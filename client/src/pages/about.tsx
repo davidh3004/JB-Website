@@ -94,7 +94,7 @@ export default function About() {
             </blockquote>
 
             <div className="space-y-5 text-slate-500 dark:text-slate-400 leading-relaxed">
-              {paragraphs.map((p, i) => (
+              {paragraphs.map((p: string, i: number) => (
                 <p key={i}>{p}</p>
               ))}
             </div>

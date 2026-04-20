@@ -6,12 +6,11 @@ if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL must be set");
 }
 
-// Only enforce SSL if it's explicitly an external cloud database.
-// Render's internal database URLs do NOT use SSL (they are internally secure).
-const isExternal = process.env.DATABASE_URL.includes("neon.tech") || process.env.DATABASE_URL.includes("render.com") || process.env.DATABASE_URL.includes("supabase");
+// Detect local dev vs cloud (Supabase, Neon, etc.)
+const isLocal = process.env.DATABASE_URL.includes("localhost") || process.env.DATABASE_URL.includes("127.0.0.1");
 
-export const pool = new Pool({ 
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: isExternal ? { rejectUnauthorized: false } : undefined
+  ssl: isLocal ? undefined : { rejectUnauthorized: false },
 });
 export const db = drizzle(pool, { schema });

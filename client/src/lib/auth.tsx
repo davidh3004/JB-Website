@@ -1,16 +1,43 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
-import { getQueryFn } from "@/lib/queryClient";
-import type { User } from "@shared/schema";
+import { supabase } from "./supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+function mapUser(user: SupabaseUser): AuthUser {
+  return {
+    id: user.id,
+    name: user.user_metadata?.name || user.email?.split("@")[0] || "Admin",
+    email: user.email || "",
+    role: user.user_metadata?.role || "admin",
+  };
+}
 
 export function useAuth() {
-  const { data: user, isLoading, error } = useQuery<User | null>({
-    queryKey: ["/api/auth/me"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    retry: false,
-    staleTime: 60000,
-  });
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Get the initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ? mapUser(session.user) : null);
+      setIsLoading(false);
+    });
+
+    // Listen for sign-in / sign-out events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ? mapUser(session.user) : null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return { user, isLoading, isAuthenticated: !!user };
 }

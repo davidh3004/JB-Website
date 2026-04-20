@@ -1,5 +1,4 @@
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
 import { Sun, Moon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,10 @@ import {
   LayoutDashboard, FolderOpen, Settings, MessageSquare,
   CreditCard, LogOut, ExternalLink, FileEdit,
 } from "lucide-react";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { queryClient } from "@/lib/queryClient";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 import { BRAND } from "@/lib/brand";
-import type { User } from "@shared/schema";
 
 const menuItems = [
   { title: "Dashboard",    href: "/admin",          icon: LayoutDashboard },
@@ -56,11 +56,11 @@ function useDarkMode() {
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
   const [location, setLocation] = useLocation();
-  const { data: user } = useQuery<User>({ queryKey: ["/api/auth/me"] });
+  const { user } = useAuth();
   const [dark, setDark] = useDarkMode();
 
   const handleLogout = async () => {
-    await apiRequest("POST", "/api/auth/logout");
+    await supabase.auth.signOut();
     queryClient.clear();
     setLocation("/admin/login");
   };

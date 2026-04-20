@@ -1,21 +1,13 @@
 import { db } from "./db";
-import { users, projects, siteSettings, leads } from "@shared/schema";
+import { projects, siteSettings } from "@shared/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 
 export async function seed() {
-  const existingAdmin = await db.select().from(users).where(eq(users.email, "admin@jbwebsites.com"));
-  if (existingAdmin.length > 0) return;
+  // Check if settings already exist (skip if already seeded)
+  const existingSettings = await db.select().from(siteSettings);
+  if (existingSettings.length > 0) return;
 
-  const passwordHash = await bcrypt.hash(process.env.ADMIN_PASSWORD || "admin123", 10);
-
-  await db.insert(users).values({
-    name: process.env.ADMIN_NAME || "JB Admin",
-    email: process.env.ADMIN_EMAIL || "admin@jbwebsites.com",
-    passwordHash,
-    role: "admin",
-  });
-
+  // Seed site settings
   await db.insert(siteSettings).values({
     heroHeadline: "Websites That Actually Work for Your Business",
     heroSubheadline: "Custom-coded, SEO-ready websites built to convert visitors into customers. No templates. No shortcuts.",
@@ -25,6 +17,7 @@ export async function seed() {
     ctaLinks: { booking: "/contact", quote: "/contact" },
   });
 
+  // Seed sample projects
   const sampleProjects = [
     {
       slug: "bella-salon-website",
