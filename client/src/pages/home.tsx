@@ -136,7 +136,7 @@ export default function Home() {
 
           <div className="relative max-w-6xl mx-auto px-6 text-center w-full">
             {/* Badge */}
-            <motion.div
+            {/* <motion.div
               className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200/60 dark:border-indigo-800/40 mb-8"
               initial={{ opacity: 0, y: 12, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -146,11 +146,11 @@ export default function Home() {
               <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 tracking-wide" data-testid="text-hero-badge">
                 Now accepting new projects
               </span>
-            </motion.div>
+            </motion.div> */}
 
             {/* Headline */}
             <motion.h1
-              className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight leading-[1.05] text-slate-900 dark:text-white max-w-4xl mx-auto mb-6"
+              className="text-5xl md:text-7xl lg:text-[5.5rem] font-extrabold tracking-tight leading-[1.05] text-slate-900 dark:text-white max-w-4xl mx-auto mt-8 mb-6"
               style={{ letterSpacing: "-0.03em" }}
               data-testid="text-hero-headline"
               initial={{ opacity: 0, y: 24 }}
