@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, asc, sql } from "drizzle-orm";
 import {
   users, projects, projectImages, siteSettings, leads, squareSettings,
   type User, type InsertUser, type Project, type InsertProject,
@@ -18,6 +18,7 @@ export interface IStorage {
   createProject(project: InsertProject): Promise<Project>;
   updateProject(id: number, data: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<void>;
+  reorderProjects(ids: number[]): Promise<void>;
 
   getProjectImages(projectId: number): Promise<ProjectImage[]>;
   createProjectImage(image: InsertProjectImage): Promise<ProjectImage>;
@@ -52,9 +53,9 @@ export class DatabaseStorage implements IStorage {
 
   async getProjects(publishedOnly = false): Promise<Project[]> {
     if (publishedOnly) {
-      return db.select().from(projects).where(eq(projects.published, true)).orderBy(desc(projects.createdAt));
+      return db.select().from(projects).where(eq(projects.published, true)).orderBy(asc(projects.sortOrder), desc(projects.createdAt));
     }
-    return db.select().from(projects).orderBy(desc(projects.createdAt));
+    return db.select().from(projects).orderBy(asc(projects.sortOrder), desc(projects.createdAt));
   }
 
   async getProjectBySlug(slug: string): Promise<(Project & { images: ProjectImage[] }) | undefined> {
@@ -82,6 +83,12 @@ export class DatabaseStorage implements IStorage {
   async deleteProject(id: number): Promise<void> {
     await db.delete(projectImages).where(eq(projectImages.projectId, id));
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  async reorderProjects(ids: number[]): Promise<void> {
+    for (let i = 0; i < ids.length; i++) {
+      await db.update(projects).set({ sortOrder: i }).where(eq(projects.id, ids[i]));
+    }
   }
 
   async getProjectImages(projectId: number): Promise<ProjectImage[]> {

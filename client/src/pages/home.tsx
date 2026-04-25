@@ -387,12 +387,12 @@ export default function Home() {
                       data-testid={`card-project-${project.id}`}
                     >
                       {/* Cover image */}
-                      <div className="aspect-video bg-slate-100 dark:bg-zinc-800 overflow-hidden">
+                      <div className="mt-0.4 bg-slate-100 dark:bg-zinc-800 overflow-hidden">
                         {project.coverImageUrl ? (
                           <img
                             src={project.coverImageUrl}
                             alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-contain bg-slate-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-950/40 dark:to-blue-950/40">

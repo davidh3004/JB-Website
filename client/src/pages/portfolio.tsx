@@ -10,7 +10,7 @@ import type { Project } from "@shared/schema";
 
 const cardReveal = {
   hidden: { opacity: 0, y: 20 },
-  show:   { opacity: 1, y: 0,   transition: { type: "spring" as const, stiffness: 90, damping: 22 } },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 90, damping: 22 } },
 };
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } };
 
@@ -19,7 +19,7 @@ export default function Portfolio() {
   const [activeFilter, setActiveFilter] = useState("all");
 
   const categories = ["all", ...Array.from(new Set((projects || []).map((p) => p.category)))];
-  const filtered   = activeFilter === "all" ? projects || [] : (projects || []).filter((p) => p.category === activeFilter);
+  const filtered = activeFilter === "all" ? projects || [] : (projects || []).filter((p) => p.category === activeFilter);
 
   const catLabel = (cat: string) =>
     cat === "all" ? "All" : cat.charAt(0).toUpperCase() + cat.slice(1).replace(/-/g, " ");
@@ -56,11 +56,10 @@ export default function Portfolio() {
                 <button
                   key={cat}
                   onClick={() => setActiveFilter(cat)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200 ${
-                    activeFilter === cat
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-all duration-200 ${activeFilter === cat
                       ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-500/25"
                       : "bg-white dark:bg-zinc-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-white/10 hover:border-indigo-300 dark:hover:border-indigo-700 hover:text-indigo-600 dark:hover:text-indigo-400"
-                  }`}
+                    }`}
                   data-testid={`button-filter-${cat}`}
                 >
                   {catLabel(cat)}
@@ -72,7 +71,7 @@ export default function Portfolio() {
           {/* Loading skeleton */}
           {isLoading && (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[1,2,3,4,5,6].map((i) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div key={i} className="rounded-2xl border border-slate-200/80 dark:border-white/8 overflow-hidden bg-white dark:bg-zinc-900 animate-pulse">
                   <div className="aspect-video bg-slate-100 dark:bg-zinc-800" />
                   <div className="p-5 space-y-3">
@@ -101,12 +100,12 @@ export default function Portfolio() {
                       data-testid={`card-project-${project.id}`}
                     >
                       {/* Cover */}
-                      <div className="aspect-video bg-slate-100 dark:bg-zinc-800 overflow-hidden relative">
+                      <div className="bg-slate-100 dark:bg-zinc-800 overflow-hidden relative">
                         {project.coverImageUrl ? (
                           <img
                             src={project.coverImageUrl}
                             alt={project.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            className="w-full h-full object-contain bg-slate-50 dark:bg-zinc-900 group-hover:scale-105 transition-transform duration-500"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-100 to-blue-100 dark:from-indigo-950/40 dark:to-blue-950/40">

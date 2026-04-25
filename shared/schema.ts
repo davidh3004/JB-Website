@@ -24,6 +24,7 @@ export const projects = pgTable("projects", {
   category: text("category").notNull().default("website"),
   description: text("description").notNull().default(""),
   tags: text("tags").array().notNull().default(sql`'{}'::text[]`),
+  sortOrder: integer("sort_order").notNull().default(0),
   coverImageUrl: text("cover_image_url"),
   liveUrl: text("live_url"),
   published: boolean("published").notNull().default(false),

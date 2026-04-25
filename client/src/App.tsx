@@ -20,6 +20,7 @@ import AdminSettings from "@/pages/admin/settings";
 import AdminLeads from "@/pages/admin/leads";
 import AdminSquare from "@/pages/admin/square";
 import AdminContent from "@/pages/admin/content";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 
 function AdminPage({ children }: { children: React.ReactNode }) {
   return (
@@ -77,6 +78,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <WhatsAppButton />
       </TooltipProvider>
     </QueryClientProvider>
   );

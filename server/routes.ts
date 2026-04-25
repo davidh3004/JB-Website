@@ -9,6 +9,9 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import crypto from "crypto";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ─── Multer (memory storage for Supabase upload) ─────
 const upload = multer({
@@ -117,6 +120,31 @@ export async function registerRoutes(
       if (!parsed.success) return res.status(400).json({ message: "Invalid form data", errors: parsed.error.flatten() });
 
       const lead = await storage.createLead(parsed.data as any);
+
+      // Send email via Resend if configured
+      if (process.env.RESEND_API_KEY) {
+        try {
+          const settings = await storage.getSiteSettings();
+          const toEmail = process.env.RESEND_TO_EMAIL || (settings.contactInfo as any)?.email || "contact@example.com";
+          
+          await resend.emails.send({
+            from: "Acme <onboarding@resend.dev>", // default testing email from Resend
+            to: toEmail,
+            subject: `New Lead Request: ${lead.name}`,
+            html: `
+              <h2>New Contact Form Submission</h2>
+              <p><strong>Name:</strong> ${lead.name}</p>
+              <p><strong>Email:</strong> ${lead.email}</p>
+              <p><strong>Phone:</strong> ${lead.phone || "N/A"}</p>
+              <p><strong>Message:</strong><br/>${(lead.message || "").replace(/\\n/g, '<br/>')}</p>
+            `,
+          });
+        } catch (emailErr) {
+          console.error("Resend Email Error:", emailErr);
+          // Do not fail the lead creation if email sending fails
+        }
+      }
+
       res.status(201).json({ ok: true, id: lead.id });
     } catch (err) {
       res.status(500).json({ message: "Failed to submit form" });
@@ -138,6 +166,17 @@ export async function registerRoutes(
       res.status(201).json(project);
     } catch (err: any) {
       res.status(400).json({ message: err.message || "Failed to create project" });
+    }
+  });
+
+  app.patch("/api/admin/projects/reorder", requireAuth, async (req, res) => {
+    try {
+      const { ids } = req.body;
+      if (!Array.isArray(ids)) return res.status(400).json({ message: "Expected array of ids" });
+      await storage.reorderProjects(ids);
+      res.json({ ok: true });
+    } catch (err: any) {
+      res.status(400).json({ message: err.message || "Failed to reorder projects" });
     }
   });
 

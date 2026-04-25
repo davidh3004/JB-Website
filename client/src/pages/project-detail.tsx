@@ -59,7 +59,7 @@ export default function ProjectDetail() {
           <div className="lg:col-span-2 space-y-6">
             <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-md overflow-hidden">
               {project.coverImageUrl ? (
-                <img src={project.coverImageUrl} alt={project.title} className="w-full h-full object-cover" />
+                <img src={project.coverImageUrl} alt={project.title} className="w-full h-full object-contain bg-slate-50 dark:bg-zinc-900" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-slate-400">
                   <Monitor className="w-16 h-16" />
@@ -71,7 +71,7 @@ export default function ProjectDetail() {
               <div className="grid grid-cols-2 gap-4">
                 {project.images.map((img) => (
                   <div key={img.id} className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-md overflow-hidden">
-                    <img src={img.url} alt={img.altText || project.title} className="w-full h-full object-cover" />
+                    <img src={img.url} alt={img.altText || project.title} className="w-full h-full object-contain bg-slate-50 dark:bg-zinc-900" />
                   </div>
                 ))}
               </div>

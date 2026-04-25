@@ -10,8 +10,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Pencil, Trash2, ExternalLink, Monitor, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, ExternalLink, Monitor, Upload, GripVertical, Image as ImageIcon } from "lucide-react";
 import { useState, useRef } from "react";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { Project } from "@shared/schema";
 
 interface ProjectFormData {
@@ -22,6 +25,81 @@ interface ProjectFormData {
   tags: string;
   liveUrl: string;
   published: boolean;
+}
+
+function SortableProjectItem({ 
+  project, 
+  onEdit, 
+  onDelete, 
+  onUpload 
+}: { 
+  project: Project; 
+  onEdit: (p: Project) => void; 
+  onDelete: (id: number) => void; 
+  onUpload: (p: Project) => void; 
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1 : 0,
+    position: 'relative' as const,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className={isDragging ? 'opacity-50' : ''}>
+      <Card className="p-0 overflow-hidden group" data-testid={`card-admin-project-${project.id}`}>
+        <div className="flex items-stretch">
+          <div 
+            className="flex items-center justify-center w-8 bg-slate-50 dark:bg-slate-900/50 border-r border-slate-100 dark:border-slate-800 cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 touch-none"
+            {...attributes} 
+            {...listeners}
+          >
+            <GripVertical className="w-4 h-4" />
+          </div>
+          <div className="flex-1 flex items-center gap-4 p-4 min-w-0">
+            <div className="w-20 h-14 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0 cursor-pointer relative group/img" onClick={() => onUpload(project)}>
+              {project.coverImageUrl ? (
+                <img src={project.coverImageUrl} alt={project.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                  <ImageIcon className="w-5 h-5" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                <Upload className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-semibold text-slate-900 dark:text-white truncate">{project.title}</h3>
+                <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                  project.published ? "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                }`}>
+                  {project.published ? "Published" : "Draft"}
+                </span>
+              </div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">{project.description || "No description"}</p>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              {project.liveUrl && (
+                <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="icon" variant="ghost"><ExternalLink className="w-4 h-4" /></Button>
+                </a>
+              )}
+              <Button size="icon" variant="ghost" onClick={() => onEdit(project)} data-testid={`button-edit-project-${project.id}`}>
+                <Pencil className="w-4 h-4" />
+              </Button>
+              <Button size="icon" variant="ghost" onClick={() => { if (confirm("Delete this project?")) onDelete(project.id); }} data-testid={`button-delete-project-${project.id}`}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 export default function AdminProjects() {
@@ -116,6 +194,33 @@ export default function AdminProjects() {
     input.click();
   };
 
+  const reorderMutation = useMutation({
+    mutationFn: async (ids: number[]) => {
+      await apiRequest("PATCH", "/api/admin/projects/reorder", { ids });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+    },
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id && projects) {
+      const oldIndex = projects.findIndex(p => p.id === active.id);
+      const newIndex = projects.findIndex(p => p.id === over.id);
+      
+      const newItems = arrayMove(projects, oldIndex, newIndex);
+      queryClient.setQueryData(["/api/admin/projects"], newItems);
+      reorderMutation.mutate(newItems.map(p => p.id));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -144,47 +249,21 @@ export default function AdminProjects() {
           ))}
         </div>
       ) : projects && projects.length > 0 ? (
-        <div className="space-y-3">
-          {projects.map((project) => (
-            <Card key={project.id} className="p-4" data-testid={`card-admin-project-${project.id}`}>
-              <div className="flex items-center gap-4">
-                <div className="w-20 h-14 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0 cursor-pointer" onClick={() => handleUpload(project)}>
-                  {project.coverImageUrl ? (
-                    <img src={project.coverImageUrl} alt={project.title} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-400">
-                      <Upload className="w-4 h-4" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="font-semibold text-slate-900 dark:text-white truncate">{project.title}</h3>
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                      project.published ? "bg-green-50 text-green-700 dark:bg-green-950/30 dark:text-green-300" : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
-                    }`}>
-                      {project.published ? "Published" : "Draft"}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 truncate mt-0.5">{project.description || "No description"}</p>
-                </div>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                  {project.liveUrl && (
-                    <a href={project.liveUrl} target="_blank" rel="noopener noreferrer">
-                      <Button size="icon" variant="ghost"><ExternalLink className="w-4 h-4" /></Button>
-                    </a>
-                  )}
-                  <Button size="icon" variant="ghost" onClick={() => openEdit(project)} data-testid={`button-edit-project-${project.id}`}>
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => { if (confirm("Delete this project?")) deleteMutation.mutate(project.id); }} data-testid={`button-delete-project-${project.id}`}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <div className="space-y-3">
+            <SortableContext items={projects.map(p => p.id)} strategy={verticalListSortingStrategy}>
+              {projects.map((project) => (
+                <SortableProjectItem
+                  key={project.id}
+                  project={project}
+                  onEdit={openEdit}
+                  onDelete={deleteMutation.mutate}
+                  onUpload={handleUpload}
+                />
+              ))}
+            </SortableContext>
+          </div>
+        </DndContext>
       ) : (
         <Card className="p-12 text-center">
           <Monitor className="w-12 h-12 mx-auto mb-3 text-slate-300" />
@@ -199,6 +278,24 @@ export default function AdminProjects() {
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit((data) => saveMutation.mutate(data))} className="space-y-4">
+              {editingProject && (
+                <div className="flex items-center gap-4 p-3 border border-slate-100 dark:border-slate-800 rounded-lg bg-slate-50 dark:bg-slate-900/50 mb-6">
+                  <div className="w-16 h-16 rounded overflow-hidden bg-slate-200 dark:bg-slate-800 flex-shrink-0">
+                    {editingProject.coverImageUrl ? (
+                      <img src={editingProject.coverImageUrl} className="w-full h-full object-cover" alt="Cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400"><ImageIcon className="w-6 h-6" /></div>
+                    )}
+                  </div>
+                   <div className="flex-1">
+                     <p className="text-sm font-medium text-slate-900 dark:text-white mb-1">Project Thumbnail</p>
+                     <p className="text-xs text-slate-500 mb-2">Recommended size: 1200x800px</p>
+                     <Button type="button" size="sm" variant="secondary" onClick={() => handleUpload(editingProject)}>
+                        <Upload className="w-3.5 h-3.5 mr-2" /> Change Image
+                     </Button>
+                   </div>
+                </div>
+              )}
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
