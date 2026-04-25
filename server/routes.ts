@@ -11,8 +11,6 @@ import path from "path";
 import crypto from "crypto";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 // ─── Multer (memory storage for Supabase upload) ─────
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -124,6 +122,7 @@ export async function registerRoutes(
       // Send email via Resend if configured
       if (process.env.RESEND_API_KEY) {
         try {
+          const resend = new Resend(process.env.RESEND_API_KEY);
           const settings = await storage.getSiteSettings();
           const toEmail = process.env.RESEND_TO_EMAIL || (settings.contactInfo as any)?.email || "contact@example.com";
           
