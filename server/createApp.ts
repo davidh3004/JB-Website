@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { registerRoutes } from "./routes";
+import { seed } from "./seed";
 
 declare module "http" {
   interface IncomingMessage {
@@ -67,7 +68,6 @@ export async function createApp(): Promise<{ app: express.Express; httpServer: S
     next();
   });
 
-  const { seed } = await import("./seed");
   try {
     await seed();
   } catch (err) {

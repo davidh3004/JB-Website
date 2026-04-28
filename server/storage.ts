@@ -5,7 +5,7 @@ import {
   type User, type InsertUser, type Project, type InsertProject,
   type ProjectImage, type InsertProjectImage, type SiteSettings,
   type Lead, type InsertLead, type SquareSettings,
-} from "@shared/schema";
+} from "../shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;

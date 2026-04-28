@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { projects, siteSettings } from "@shared/schema";
+import { projects, siteSettings } from "../shared/schema";
 import { eq } from "drizzle-orm";
 
 export async function seed() {
