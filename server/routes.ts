@@ -26,6 +26,21 @@ const upload = multer({
   },
 });
 
+function escapeXml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Canonical site origin for sitemap / robots (prefer PUBLIC_SITE_URL on Render). */
+function publicSiteOrigin(req: Request): string {
+  const raw = process.env.PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
+  if (raw) {
+    return raw.startsWith("http://") || raw.startsWith("https://") ? raw : `https://${raw}`;
+  }
+  const proto = (req.get("x-forwarded-proto") || "https").split(",")[0]!.trim();
+  const host = (req.get("host") || "").trim();
+  return `${proto}://${host}`;
+}
+
 // ─── Auth middleware (Supabase JWT) ───────────────────
 async function requireAuth(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -87,6 +102,52 @@ export async function registerRoutes(
       email: user.email,
       role: user.user_metadata?.role || "admin",
     });
+  });
+
+  // ─── SEO: robots.txt & sitemap.xml (Google / crawlers) ─
+  app.get("/robots.txt", (req, res) => {
+    res.type("text/plain");
+    const base = publicSiteOrigin(req);
+    res.send(
+      [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin",
+        "",
+        `Sitemap: ${base}/sitemap.xml`,
+        "",
+      ].join("\n"),
+    );
+  });
+
+  app.get("/sitemap.xml", async (req, res) => {
+    try {
+      const base = publicSiteOrigin(req);
+      const staticPaths = ["/", "/services", "/portfolio", "/about", "/contact"];
+      const projects = await storage.getProjects(true);
+      const lastmod = new Date().toISOString().slice(0, 10);
+      const entries: { loc: string; changefreq: string }[] = [
+        ...staticPaths.map((p) => ({ loc: `${base}${p}`, changefreq: "weekly" })),
+        ...projects.map((p) => ({
+          loc: `${base}/portfolio/${encodeURIComponent(p.slug)}`,
+          changefreq: "monthly",
+        })),
+      ];
+      const body =
+        `<?xml version="1.0" encoding="UTF-8"?>` +
+        `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">` +
+        entries
+          .map(
+            (u) =>
+              `<url><loc>${escapeXml(u.loc)}</loc><lastmod>${lastmod}</lastmod><changefreq>${u.changefreq}</changefreq><priority>0.8</priority></url>`,
+          )
+          .join("") +
+        `</urlset>`;
+      res.type("application/xml");
+      res.send(body);
+    } catch {
+      res.status(500).type("text/plain").send("sitemap error");
+    }
   });
 
   // ─── Public routes ─────────────────────────────────

@@ -22,14 +22,15 @@ export function log(message: string, source = "express") {
 
 /**
  * Builds the Express app and HTTP server (no listen).
- * Used by local `server/index.ts` and Vercel `api/index.ts`.
+ * Used by `server/index.ts` (local dev + Render `npm start`).
  */
 export async function createApp(): Promise<{ app: express.Express; httpServer: Server }> {
   const app = express();
   const httpServer = createServer(app);
 
-  if (process.env.VERCEL) {
-    app.set("trust proxy", true);
+  // Trust reverse proxy (Render, etc.) for correct client IP / secure cookies
+  if (process.env.NODE_ENV === "production") {
+    app.set("trust proxy", 1);
   }
 
   app.use(

@@ -1,8 +1,5 @@
 node_modules
 dist
-public
-api/index.cjs
-api/index.cjs.map
 .DS_Store
 server/public
 vite.config.ts.*
