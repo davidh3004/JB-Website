@@ -15,7 +15,7 @@ async function getHandler() {
   return handlerPromise;
 }
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req: unknown, res: unknown) {
   const handlerFn = await getHandler();
-  return handlerFn(req, res);
+  await (handlerFn as (req: unknown, res: unknown) => unknown)(req, res);
 }
